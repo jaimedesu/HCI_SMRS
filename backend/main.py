@@ -37,10 +37,15 @@ def get_student(student_no: str):
 
 @app.post("/students", response_model=Student)
 def create_student(student: Student):
+    if db.get_student(student.student_no):
+        raise HTTPException(status_code=409, detail="Student already exists")
     return db.create_student(student)
 
 @app.put("/students/{student_no}", response_model=Student)
 def update_student(student_no: str, student: Student):
+    existing = db.get_student(student_no)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Student not found")
     return db.update_student(student_no, student)
 
 # ── Full NFC Payload ─────────────────────────────────────────
@@ -106,6 +111,10 @@ def delete_medication(med_id: int):
 def list_record_requests():
     return db.get_record_requests()
 
+@app.get("/students/{student_no}/record-requests")
+def get_student_record_requests(student_no: str):
+    return db.get_student_record_requests(student_no)
+
 @app.post("/record-requests")
 def submit_record_request(req: MedicalRecord):
     return db.create_record_request(req)
@@ -113,6 +122,11 @@ def submit_record_request(req: MedicalRecord):
 @app.put("/record-requests/{req_id}/status")
 def update_request_status(req_id: int, status: str):
     return db.update_request_status(req_id, status)
+
+@app.delete("/record-requests/{req_id}")
+def delete_record_request(req_id: int):
+    db.delete_record_request(req_id)
+    return {"deleted": req_id}
 
 # ── Admin HTML Panel ─────────────────────────────────────────
 @app.get("/admin", response_class=HTMLResponse)

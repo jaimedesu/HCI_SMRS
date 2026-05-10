@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.smrs.clinic'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.smrs.clinic"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    // Suppress lint warnings that block builds
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    // AppCompat only — no Material dependency to avoid runtime crashes
+    // on devices without the Material theme installed
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}

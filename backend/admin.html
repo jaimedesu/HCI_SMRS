@@ -107,8 +107,8 @@
         <div><label>Program</label><input id="f-prog" placeholder="BSIT"/></div>
       </div>
       <div class="form-row three">
-        <div><label>Year Level</label><input id="f-yr" placeholder="2nd Year"/></div>
-        <div><label>Date of Birth</label><input id="f-dob" placeholder="Jan 1, 2003"/></div>
+        <div><label>Year Level</label><select id="f-yr"><option value="">-- Select Year --</option><option value="1st Year">1st Year</option><option value="2nd Year">2nd Year</option><option value="3rd Year">3rd Year</option><option value="4th Year">4th Year</option><option value="5th Year">5th Year</option></select></div>
+        <div><label>Date of Birth</label><input id="f-dob" type="date"/></div>
         <div><label>Sex</label><select id="f-sex"><option>Male</option><option>Female</option></select></div>
       </div>
       <div class="form-row">
@@ -150,7 +150,7 @@
         <div><label>Type</label><input id="a-type" placeholder="General Check-up"/></div>
       </div>
       <div class="form-row three">
-        <div><label>Date</label><input id="a-date" placeholder="May 03, 2025"/></div>
+        <div><label>Date</label><input id="a-date" type="date"/></div>
         <div><label>Time</label><input id="a-time" placeholder="9:00 AM"/></div>
         <div><label>Location</label><input id="a-loc" placeholder="Clinic A"/></div>
       </div>
@@ -159,9 +159,24 @@
       </div>
       <button class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
     </div>
+    <div class="card" id="edit-appt-form" style="display:none;">
+      <h3>Edit Appointment</h3>
+      <div class="form-row three">
+        <div><label>Doctor</label><input id="ae-doc" readonly/></div>
+        <div><label>Type</label><input id="ae-type" readonly/></div>
+        <div><label>Date</label><input id="ae-date" readonly/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Time</label><input id="ae-time" readonly/></div>
+        <div><label>Location</label><input id="ae-loc" readonly/></div>
+        <div><label>Status</label><select id="ae-stat"><option value="upcoming">Upcoming</option><option value="pending">Pending</option><option value="completed">Completed</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveApptStatus()">Update Status</button>
+      <button class="btn" style="margin-left:8px;" onclick="document.getElementById('edit-appt-form').style.display='none'">Cancel</button>
+    </div>
     <div class="card">
       <h3>All Appointments</h3>
-      <table><thead><tr><th>Student</th><th>Doctor</th><th>Type</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th><th>Delete</th></tr></thead>
+      <table><thead><tr><th>Student</th><th>Doctor</th><th>Type</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th><th>Edit Status</th><th>Delete</th></tr></thead>
       <tbody id="appts-table"></tbody></table>
     </div>
   </div>
@@ -179,12 +194,12 @@
       <div class="form-row three">
         <div><label>Frequency</label><input id="m-freq" placeholder="As needed"/></div>
         <div><label>Route</label><input id="m-route" placeholder="Inhaler / Oral"/></div>
-        <div><label>Prescribed Date</label><input id="m-pdate" placeholder="May 01, 2025"/></div>
+        <div><label>Prescribed Date</label><input id="m-pdate" type="date"/></div>
       </div>
       <div class="form-row three">
         <div><label>Doctor</label><input id="m-doc" placeholder="Dr. Santos"/></div>
-        <div><label>Total Supply</label><input id="m-total" type="number" placeholder="30"/></div>
-        <div><label>Remaining</label><input id="m-rem" type="number" placeholder="30"/></div>
+        <div><label>Total Supply</label><input id="m-total" type="number" placeholder="30" min="0"/></div>
+        <div><label>Remaining</label><input id="m-rem" type="number" placeholder="30" min="0"/></div>
       </div>
       <button class="btn btn-primary" onclick="addMedication()">Prescribe</button>
     </div>
@@ -239,8 +254,17 @@ let nfcPayload = null;
 
 async function api(path, opts={}) {
   const res = await fetch(API + path, {headers:{'Content-Type':'application/json'}, ...opts});
-  if(!res.ok) throw await res.text();
-  return res.json();
+  const text = await res.text();
+  if(!res.ok) {
+    let message = text;
+    try { const json = JSON.parse(text); message = json.detail || json.message || text; } catch {}
+    throw {status: res.status, message};
+  }
+  return text ? JSON.parse(text) : null;
+}
+
+function showFormMsg(msg, error=false) {
+  document.getElementById('form-msg').innerHTML = `<div class="alert ${error ? 'alert-error' : 'alert-success'}">${msg}</div>`;
 }
 
 function show(id, el) {
@@ -302,7 +326,22 @@ function filterStudents(q) {
 
 function openAddStudent() {
   document.getElementById('add-student-form').style.display='block';
-  ['f-sno','f-name','f-prog','f-yr','f-dob','f-contact','f-emg','f-allergy','f-cond','f-surg','f-vacc'].forEach(id=>document.getElementById(id).value='');
+  ['f-sno','f-name','f-prog','f-dob','f-contact','f-emg','f-allergy','f-cond','f-surg','f-vacc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-yr').value='';
+}
+
+function parseDate(dateStr) {
+  if(!dateStr) return '';
+  if(/^\\d{4}-\\d{2}-\\d{2}$/.test(dateStr)) return dateStr;
+  const months={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  const parts=dateStr.split(' ');
+  if(parts.length>=3) {
+    const mon=months[parts[0]];
+    const day=String(parseInt(parts[1])).padStart(2,'0');
+    const year=parts[2];
+    if(mon) return `${year}-${mon}-${day}`;
+  }
+  return '';
 }
 
 async function editStudent(sno) {
@@ -313,7 +352,7 @@ async function editStudent(sno) {
   document.getElementById('f-name').value=s.full_name;
   document.getElementById('f-prog').value=s.program;
   document.getElementById('f-yr').value=s.year_level;
-  document.getElementById('f-dob').value=s.date_of_birth;
+  document.getElementById('f-dob').value=parseDate(s.date_of_birth);
   document.getElementById('f-sex').value=s.sex;
   document.getElementById('f-contact').value=s.contact;
   document.getElementById('f-emg').value=s.emergency_contact;
@@ -327,29 +366,46 @@ async function editStudent(sno) {
 }
 
 async function saveStudent() {
+  document.getElementById('form-msg').innerHTML = '';
   const wt = parseFloat(document.getElementById('f-wt').value)||0;
   const ht = parseFloat(document.getElementById('f-ht').value)||0;
   const payload = {
-    student_no: document.getElementById('f-sno').value,
-    full_name: document.getElementById('f-name').value,
-    program: document.getElementById('f-prog').value,
-    year_level: document.getElementById('f-yr').value,
-    date_of_birth: document.getElementById('f-dob').value,
+    student_no: document.getElementById('f-sno').value.trim(),
+    full_name: document.getElementById('f-name').value.trim(),
+    program: document.getElementById('f-prog').value.trim(),
+    year_level: document.getElementById('f-yr').value.trim(),
+    date_of_birth: document.getElementById('f-dob').value.trim(),
     sex: document.getElementById('f-sex').value,
-    contact: document.getElementById('f-contact').value,
-    emergency_contact: document.getElementById('f-emg').value,
+    contact: document.getElementById('f-contact').value.trim(),
+    emergency_contact: document.getElementById('f-emg').value.trim(),
     blood_type: document.getElementById('f-bt').value,
     weight_kg: wt, height_cm: ht,
     bmi: ht>0 ? +(wt/((ht/100)**2)).toFixed(1) : 0,
-    allergies: document.getElementById('f-allergy').value,
-    conditions: document.getElementById('f-cond').value,
-    surgeries: document.getElementById('f-surg').value,
-    vaccinations: document.getElementById('f-vacc').value,
+    allergies: document.getElementById('f-allergy').value.trim(),
+    conditions: document.getElementById('f-cond').value.trim(),
+    surgeries: document.getElementById('f-surg').value.trim(),
+    vaccinations: document.getElementById('f-vacc').value.trim(),
   };
+  if (!payload.student_no) {
+    showFormMsg('Student number is required.', true);
+    return;
+  }
   try {
     await api(`/students/${payload.student_no}`, {method:'PUT', body:JSON.stringify(payload)});
-  } catch {
-    await api('/students', {method:'POST', body:JSON.stringify(payload)});
+    showFormMsg('Student updated successfully.');
+  } catch (err) {
+    if (err && err.status === 404) {
+      try {
+        await api('/students', {method:'POST', body:JSON.stringify(payload)});
+        showFormMsg('Student added successfully.');
+      } catch (postErr) {
+        showFormMsg('Save failed: ' + (postErr.message || 'Unknown error'), true);
+        return;
+      }
+    } else {
+      showFormMsg('Save failed: ' + (err.message || 'Unknown error'), true);
+      return;
+    }
   }
   document.getElementById('add-student-form').style.display='none';
   loadStudents();
@@ -364,6 +420,7 @@ async function loadAllAppts() {
     <td>${a.student_no}</td><td>${a.doctor}</td><td>${a.type}</td>
     <td>${a.date}</td><td>${a.time}</td><td>${a.location}</td>
     <td>${badge(a.status)}</td>
+    <td><button class="btn btn-sm btn-primary" onclick="editApptStatus(${a.id})">Edit</button></td>
     <td><button class="btn btn-sm btn-danger" onclick="deleteAppt(${a.id})">✕</button></td>
   </tr>`).join('');
 }
@@ -372,6 +429,28 @@ async function addAppointment() {
   const sno = document.getElementById('a-sno').value;
   const payload = {doctor:document.getElementById('a-doc').value,type:document.getElementById('a-type').value,date:document.getElementById('a-date').value,time:document.getElementById('a-time').value,location:document.getElementById('a-loc').value,status:document.getElementById('a-stat').value};
   await api(`/students/${sno}/appointments`, {method:'POST', body:JSON.stringify(payload)});
+  loadAllAppts();
+}
+
+async function editApptStatus(id) {
+  const appt = allAppts.find(a=>a.id===id);
+  if(!appt) return;
+  document.getElementById('ae-doc').value=appt.doctor;
+  document.getElementById('ae-type').value=appt.type;
+  document.getElementById('ae-date').value=appt.date;
+  document.getElementById('ae-time').value=appt.time;
+  document.getElementById('ae-loc').value=appt.location;
+  document.getElementById('ae-stat').value=appt.status;
+  document.getElementById('edit-appt-form').dataset.apptId=id;
+  document.getElementById('edit-appt-form').style.display='block';
+}
+
+async function saveApptStatus() {
+  const apptId=parseInt(document.getElementById('edit-appt-form').dataset.apptId);
+  const appt=allAppts.find(a=>a.id===apptId);
+  const updated={...appt,status:document.getElementById('ae-stat').value};
+  await api(`/appointments/${apptId}`, {method:'PUT', body:JSON.stringify(updated)});
+  document.getElementById('edit-appt-form').style.display='none';
   loadAllAppts();
 }
 
@@ -397,8 +476,32 @@ async function loadAllMeds() {
 }
 
 async function addMedication() {
-  const sno = document.getElementById('m-sno').value;
-  const payload = {name:document.getElementById('m-name').value,dosage:document.getElementById('m-dose').value,frequency:document.getElementById('m-freq').value,route:document.getElementById('m-route').value,prescribed_date:document.getElementById('m-pdate').value,doctor:document.getElementById('m-doc').value,supply_total:parseInt(document.getElementById('m-total').value),supply_remaining:parseInt(document.getElementById('m-rem').value),status:'active'};
+  const sno = document.getElementById('m-sno').value.trim();
+  const name = document.getElementById('m-name').value.trim();
+  const total = Math.max(0, parseInt(document.getElementById('m-total').value) || 0);
+  const remaining = Math.max(0, parseInt(document.getElementById('m-rem').value) || 0);
+  
+  if (!sno) {
+    alert('Please enter a student number.');
+    return;
+  }
+  if (!name) {
+    alert('Please enter a medicine name.');
+    return;
+  }
+  
+  const payload = {
+    name: name,
+    dosage: document.getElementById('m-dose').value.trim(),
+    frequency: document.getElementById('m-freq').value.trim(),
+    route: document.getElementById('m-route').value.trim(),
+    prescribed_date: document.getElementById('m-pdate').value,
+    doctor: document.getElementById('m-doc').value.trim(),
+    supply_total: total,
+    supply_remaining: remaining,
+    status: 'active'
+  };
+  
   await api(`/students/${sno}/medications`, {method:'POST', body:JSON.stringify(payload)});
   loadAllMeds();
 }
@@ -451,13 +554,20 @@ async function loadRequests() {
     <td>${r.id}</td><td>${r.student_no}</td><td>${r.record_type}</td>
     <td>${r.purpose}</td><td>${r.date_needed}</td><td>${r.mode_of_release}</td>
     <td>${badge(r.status)}</td><td style="font-size:11px;color:#888;">${r.submitted_at||'–'}</td>
-    <td><button class="btn btn-sm btn-success" onclick="approveReq(${r.id})">Approve</button></td>
+    <td><button class="btn btn-sm btn-success" onclick="approveReq(${r.id})">Approve</button> <button class="btn btn-sm btn-danger" onclick="deleteReq(${r.id})">✕</button></td>
   </tr>`).join('');
 }
 
 async function approveReq(id) {
   await api(`/record-requests/${id}/status?status=approved`, {method:'PUT'});
   loadRequests();
+}
+
+async function deleteReq(id) {
+  if(confirm('Delete this record request?')) {
+    await api(`/record-requests/${id}`, {method:'DELETE'});
+    loadRequests();
+  }
 }
 
 // Auto-load dashboard

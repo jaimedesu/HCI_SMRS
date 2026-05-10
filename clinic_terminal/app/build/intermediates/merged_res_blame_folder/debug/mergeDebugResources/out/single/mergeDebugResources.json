@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.smrs.clinic.app-debug-20:/xml_apduservice.xml.flat",
+        "source": "com.smrs.clinic.app-main-22:/xml/apduservice.xml"
+    },
+    {
+        "merged": "com.smrs.clinic.app-debug-20:/xml_network_security_config.xml.flat",
+        "source": "com.smrs.clinic.app-main-22:/xml/network_security_config.xml"
+    }
+]

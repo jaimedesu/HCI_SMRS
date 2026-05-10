@@ -198,6 +198,12 @@ class Database:
         conn.close()
         return [dict(r) for r in rows]
 
+    def get_student_record_requests(self, student_no):
+        conn = self._conn()
+        rows = conn.execute("SELECT * FROM record_requests WHERE student_no=? ORDER BY submitted_at DESC", (student_no,)).fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
+
     def create_record_request(self, req: MedicalRecord):
         conn = self._conn()
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -217,3 +223,9 @@ class Database:
         conn.commit()
         conn.close()
         return {"id": req_id, "status": status}
+
+    def delete_record_request(self, req_id):
+        conn = self._conn()
+        conn.execute("DELETE FROM record_requests WHERE id=?", (req_id,))
+        conn.commit()
+        conn.close()

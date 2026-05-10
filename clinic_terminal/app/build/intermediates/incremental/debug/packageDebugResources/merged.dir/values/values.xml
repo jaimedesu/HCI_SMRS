@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aid_desc">SMRS Student Records AID</string>
+    <string name="app_name">SMRS Clinic Terminal</string>
+    <string name="service_desc">SMRS NFC HCE Service</string>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#1565C0</item>
+        <item name="colorPrimaryDark">#0D47A1</item>
+        <item name="colorAccent">#42A5F5</item>
+        <item name="android:windowBackground">#F5F5F5</item>
+        <item name="android:statusBarColor">#1565C0</item>
+    </style>
+</resources>
