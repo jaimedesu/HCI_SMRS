@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SMRS Admin Panel</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Lato',sans-serif;background:#F5F5F5;color:#222;}
+  @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap');
+  .sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;background:#1565C0;color:#fff;display:flex;flex-direction:column;padding:0;}
+  .logo{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.15);}
+  .logo h2{font-size:15px;font-weight:700;letter-spacing:0.5px;}
+  .logo p{font-size:10px;opacity:0.6;margin-top:4px;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:13px 20px;color:#fff;text-decoration:none;font-size:13px;font-weight:600;opacity:0.75;transition:all .15s;}
+  .nav a:hover,.nav a.active{opacity:1;background:rgba(255,255,255,0.12);}
+  .nav a .ic{font-size:16px;width:20px;}
+  .main{margin-left:220px;padding:28px 32px;min-height:100vh;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .topbar h1{font-size:22px;font-weight:700;color:#1565C0;}
+  .card{background:#fff;border-radius:14px;border:1px solid #E8E8E8;padding:20px;margin-bottom:20px;}
+  .card h3{font-size:13px;font-weight:700;color:#1565C0;margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:8px 12px;background:#F0F4FF;color:#1565C0;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;}
+  td{padding:10px 12px;border-bottom:1px solid #F0F0F0;color:#333;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#FAFAFA;}
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+  .badge-up{background:#E1F5EE;color:#0F6E56;}
+  .badge-co{background:#EAF3DE;color:#3B6D11;}
+  .badge-pe{background:#E6F1FB;color:#185FA5;}
+  .badge-ac{background:#FAEEDA;color:#854F0B;}
+  .badge-pr{background:#EEE;color:#888;}
+  input,select,textarea{width:100%;padding:9px 12px;border:1px solid #D0DDEF;border-radius:8px;font-size:13px;font-family:inherit;outline:none;color:#333;}
+  input:focus,select:focus{border-color:#1565C0;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .form-row.three{grid-template-columns:1fr 1fr 1fr;}
+  label{display:block;font-size:11px;font-weight:600;color:#666;margin-bottom:4px;}
+  .btn{padding:9px 20px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-primary{background:#1565C0;color:#fff;}
+  .btn-primary:hover{background:#1251A3;}
+  .btn-danger{background:#FCEBEB;color:#A32D2D;border:1px solid #F5C5C5;}
+  .btn-sm{padding:4px 12px;font-size:11px;}
+  .btn-success{background:#E1F5EE;color:#0F6E56;border:1px solid #A5D9C5;}
+  .nfc-payload{background:#0A2F6E;color:#6EE7FF;border-radius:10px;padding:16px;font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin-top:10px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .stat{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid #E8E8E8;}
+  .stat .val{font-size:28px;font-weight:700;color:#1565C0;}
+  .stat .lbl{font-size:11px;color:#888;margin-top:4px;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .search{padding:8px 14px;border:1px solid #D0DDEF;border-radius:8px;font-size:13px;width:260px;}
+  .alert{padding:10px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;}
+  .alert-success{background:#E1F5EE;color:#0F6E56;border:1px solid #A5D9C5;}
+  .alert-error{background:#FCEBEB;color:#A32D2D;}
+  #nfc-status{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:12px;}
+  .nfc-ready{background:#E1F5EE;color:#0F6E56;}
+  .nfc-loading{background:#E6F1FB;color:#185FA5;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <h2>📋 SMRS Admin</h2>
+    <p>Student Medical Records</p>
+  </div>
+  <nav class="nav">
+    <a href="#" class="active" onclick="show('dashboard',this)"><span class="ic">📊</span>Dashboard</a>
+    <a href="#" onclick="show('students',this)"><span class="ic">👥</span>Students</a>
+    <a href="#" onclick="show('appointments',this)"><span class="ic">📅</span>Appointments</a>
+    <a href="#" onclick="show('medications',this)"><span class="ic">💊</span>Medications</a>
+    <a href="#" onclick="show('nfc',this)"><span class="ic">📡</span>NFC Terminal</a>
+    <a href="#" onclick="show('requests',this)"><span class="ic">📄</span>Record Requests</a>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="section active">
+    <div class="topbar"><h1>Dashboard</h1><span style="font-size:12px;color:#888;">SMRS Clinic Admin Panel</span></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="val" id="stat-students">–</div><div class="lbl">Registered Students</div></div>
+      <div class="stat"><div class="val" id="stat-appts">–</div><div class="lbl">Upcoming Appointments</div></div>
+      <div class="stat"><div class="val" id="stat-meds">–</div><div class="lbl">Active Medications</div></div>
+      <div class="stat"><div class="val" id="stat-reqs">–</div><div class="lbl">Pending Requests</div></div>
+    </div>
+    <div class="card">
+      <h3>Recent Record Requests</h3>
+      <table><thead><tr><th>Student</th><th>Type</th><th>Purpose</th><th>Date Needed</th><th>Release</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="dash-requests"></tbody></table>
+    </div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div id="students" class="section">
+    <div class="topbar"><h1>Students</h1>
+      <button class="btn btn-primary" onclick="openAddStudent()">+ Add Student</button>
+    </div>
+    <div class="card" id="add-student-form" style="display:none;">
+      <h3>Add / Edit Student</h3>
+      <div id="form-msg"></div>
+      <div class="form-row three">
+        <div><label>Student No.</label><input id="f-sno" placeholder="2400000"/></div>
+        <div><label>Full Name</label><input id="f-name" placeholder="Juan Dela Cruz"/></div>
+        <div><label>Program</label><input id="f-prog" placeholder="BSIT"/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Year Level</label><input id="f-yr" placeholder="2nd Year"/></div>
+        <div><label>Date of Birth</label><input id="f-dob" placeholder="Jan 1, 2003"/></div>
+        <div><label>Sex</label><select id="f-sex"><option>Male</option><option>Female</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label>Contact</label><input id="f-contact" placeholder="+63 9XX XXX XXXX"/></div>
+        <div><label>Emergency Contact</label><input id="f-emg" placeholder="+63 9XX XXX XXXX"/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Blood Type</label><select id="f-bt"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
+        <div><label>Weight (kg)</label><input id="f-wt" type="number" placeholder="60"/></div>
+        <div><label>Height (cm)</label><input id="f-ht" type="number" placeholder="165"/></div>
+      </div>
+      <div class="form-row">
+        <div><label>Allergies</label><input id="f-allergy" placeholder="None / Penicillin, Shrimp"/></div>
+        <div><label>Medical Conditions</label><input id="f-cond" placeholder="None / Asthma (mild)"/></div>
+      </div>
+      <div class="form-row">
+        <div><label>Surgeries</label><input id="f-surg" placeholder="None on record"/></div>
+        <div><label>Vaccinations</label><input id="f-vacc" placeholder="Up to date"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+      <button class="btn" style="margin-left:8px;" onclick="document.getElementById('add-student-form').style.display='none'">Cancel</button>
+    </div>
+    <div class="card">
+      <h3>All Students</h3>
+      <input class="search" placeholder="Search by name or student no…" oninput="filterStudents(this.value)" style="margin-bottom:12px;"/>
+      <table><thead><tr><th>Student No.</th><th>Name</th><th>Program</th><th>Year</th><th>Blood Type</th><th>Allergies</th><th>Actions</th></tr></thead>
+      <tbody id="students-table"></tbody></table>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="appointments" class="section">
+    <div class="topbar"><h1>Appointments</h1></div>
+    <div class="card">
+      <h3>Add Appointment</h3>
+      <div class="form-row three">
+        <div><label>Student No.</label><input id="a-sno" placeholder="2400557"/></div>
+        <div><label>Doctor</label><input id="a-doc" placeholder="Dr. Reyes"/></div>
+        <div><label>Type</label><input id="a-type" placeholder="General Check-up"/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Date</label><input id="a-date" placeholder="May 03, 2025"/></div>
+        <div><label>Time</label><input id="a-time" placeholder="9:00 AM"/></div>
+        <div><label>Location</label><input id="a-loc" placeholder="Clinic A"/></div>
+      </div>
+      <div class="form-row">
+        <div><label>Status</label><select id="a-stat"><option value="upcoming">Upcoming</option><option value="pending">Pending</option><option value="completed">Completed</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addAppointment()">Add Appointment</button>
+    </div>
+    <div class="card">
+      <h3>All Appointments</h3>
+      <table><thead><tr><th>Student</th><th>Doctor</th><th>Type</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th><th>Delete</th></tr></thead>
+      <tbody id="appts-table"></tbody></table>
+    </div>
+  </div>
+
+  <!-- MEDICATIONS -->
+  <div id="medications" class="section">
+    <div class="topbar"><h1>Medications</h1></div>
+    <div class="card">
+      <h3>Prescribe Medication</h3>
+      <div class="form-row three">
+        <div><label>Student No.</label><input id="m-sno" placeholder="2400557"/></div>
+        <div><label>Medicine Name</label><input id="m-name" placeholder="Salbutamol"/></div>
+        <div><label>Dosage</label><input id="m-dose" placeholder="2 puffs"/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Frequency</label><input id="m-freq" placeholder="As needed"/></div>
+        <div><label>Route</label><input id="m-route" placeholder="Inhaler / Oral"/></div>
+        <div><label>Prescribed Date</label><input id="m-pdate" placeholder="May 01, 2025"/></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Doctor</label><input id="m-doc" placeholder="Dr. Santos"/></div>
+        <div><label>Total Supply</label><input id="m-total" type="number" placeholder="30"/></div>
+        <div><label>Remaining</label><input id="m-rem" type="number" placeholder="30"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="addMedication()">Prescribe</button>
+    </div>
+    <div class="card">
+      <h3>All Medications</h3>
+      <table><thead><tr><th>Student</th><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Route</th><th>Doctor</th><th>Supply</th><th>Status</th><th>Delete</th></tr></thead>
+      <tbody id="meds-table"></tbody></table>
+    </div>
+  </div>
+
+  <!-- NFC TERMINAL -->
+  <div id="nfc" class="section">
+    <div class="topbar"><h1>NFC Terminal</h1></div>
+    <div class="card" style="max-width:520px;">
+      <h3>Load Student for NFC Transfer</h3>
+      <div id="nfc-status" class="nfc-ready">📡 Ready — Enter student number to prepare NFC payload</div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div><label>Student Number</label><input id="nfc-sno" placeholder="2400557" oninput="clearNfc()"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="loadNfcPayload()">🔍 Load &amp; Preview Payload</button>
+      <div id="nfc-payload-wrap" style="display:none;">
+        <p style="font-size:12px;color:#888;margin:12px 0 4px;">JSON payload that will be sent over NFC to the student's phone:</p>
+        <div class="nfc-payload" id="nfc-payload-box"></div>
+        <div style="margin-top:12px;display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="copyPayload()">📋 Copy Payload</button>
+          <button class="btn btn-success" onclick="markReady()">✅ Mark Terminal Ready</button>
+        </div>
+        <p style="font-size:11px;color:#888;margin-top:10px;">
+          In production, the Clinic Terminal Android app fetches this payload from the server
+          and broadcasts it via NFC HCE (Host Card Emulation) — the student taps their phone to receive it.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECORD REQUESTS -->
+  <div id="requests" class="section">
+    <div class="topbar"><h1>Record Requests</h1></div>
+    <div class="card">
+      <h3>Submitted Requests</h3>
+      <table><thead><tr><th>ID</th><th>Student</th><th>Type</th><th>Purpose</th><th>Date Needed</th><th>Release</th><th>Status</th><th>Submitted</th><th>Action</th></tr></thead>
+      <tbody id="requests-table"></tbody></table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '';
+let allStudents = [], allAppts = [], allMeds = [];
+let nfcPayload = null;
+
+async function api(path, opts={}) {
+  const res = await fetch(API + path, {headers:{'Content-Type':'application/json'}, ...opts});
+  if(!res.ok) throw await res.text();
+  return res.json();
+}
+
+function show(id, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if(id==='dashboard') loadDashboard();
+  if(id==='students') loadStudents();
+  if(id==='appointments') loadAllAppts();
+  if(id==='medications') loadAllMeds();
+  if(id==='requests') loadRequests();
+}
+
+function badge(status) {
+  const map = {upcoming:'badge-up',completed:'badge-co',pending:'badge-pe',active:'badge-ac',processing:'badge-pe'};
+  return `<span class="badge ${map[status]||'badge-pr'}">${status}</span>`;
+}
+
+// ── Dashboard ──────────────────────────────
+async function loadDashboard() {
+  const students = await api('/students');
+  allStudents = students;
+  document.getElementById('stat-students').textContent = students.length;
+  const appts = await Promise.all(students.map(s=>api(`/students/${s.student_no}/appointments`)));
+  const flat = appts.flat();
+  document.getElementById('stat-appts').textContent = flat.filter(a=>a.status==='upcoming').length;
+  const meds = await Promise.all(students.map(s=>api(`/students/${s.student_no}/medications`)));
+  document.getElementById('stat-meds').textContent = meds.flat().filter(m=>m.status==='active').length;
+  const reqs = await api('/record-requests');
+  document.getElementById('stat-reqs').textContent = reqs.filter(r=>r.status==='pending').length;
+  const tbody = document.getElementById('dash-requests');
+  tbody.innerHTML = reqs.slice(0,8).map(r=>`<tr>
+    <td>${r.student_no}</td><td>${r.record_type}</td><td>${r.purpose}</td>
+    <td>${r.date_needed}</td><td>${r.mode_of_release}</td><td>${badge(r.status)}</td>
+    <td><button class="btn btn-sm btn-success" onclick="approveReq(${r.id})">Approve</button></td>
+  </tr>`).join('');
+}
+
+// ── Students ───────────────────────────────
+async function loadStudents() {
+  allStudents = await api('/students');
+  renderStudents(allStudents);
+}
+
+function renderStudents(list) {
+  document.getElementById('students-table').innerHTML = list.map(s=>`<tr>
+    <td><b>${s.student_no}</b></td><td>${s.full_name}</td><td>${s.program}</td>
+    <td>${s.year_level}</td><td><b style="color:#1565C0">${s.blood_type}</b></td>
+    <td style="color:${s.allergies!='None'?'#A32D2D':'#888'}">${s.allergies}</td>
+    <td><button class="btn btn-sm btn-primary" onclick="editStudent('${s.student_no}')">Edit</button></td>
+  </tr>`).join('');
+}
+
+function filterStudents(q) {
+  const f = allStudents.filter(s=>s.full_name.toLowerCase().includes(q.toLowerCase())||s.student_no.includes(q));
+  renderStudents(f);
+}
+
+function openAddStudent() {
+  document.getElementById('add-student-form').style.display='block';
+  ['f-sno','f-name','f-prog','f-yr','f-dob','f-contact','f-emg','f-allergy','f-cond','f-surg','f-vacc'].forEach(id=>document.getElementById(id).value='');
+}
+
+async function editStudent(sno) {
+  const s = allStudents.find(x=>x.student_no===sno);
+  if(!s) return;
+  document.getElementById('add-student-form').style.display='block';
+  document.getElementById('f-sno').value=s.student_no;
+  document.getElementById('f-name').value=s.full_name;
+  document.getElementById('f-prog').value=s.program;
+  document.getElementById('f-yr').value=s.year_level;
+  document.getElementById('f-dob').value=s.date_of_birth;
+  document.getElementById('f-sex').value=s.sex;
+  document.getElementById('f-contact').value=s.contact;
+  document.getElementById('f-emg').value=s.emergency_contact;
+  document.getElementById('f-bt').value=s.blood_type;
+  document.getElementById('f-wt').value=s.weight_kg;
+  document.getElementById('f-ht').value=s.height_cm;
+  document.getElementById('f-allergy').value=s.allergies;
+  document.getElementById('f-cond').value=s.conditions;
+  document.getElementById('f-surg').value=s.surgeries;
+  document.getElementById('f-vacc').value=s.vaccinations;
+}
+
+async function saveStudent() {
+  const wt = parseFloat(document.getElementById('f-wt').value)||0;
+  const ht = parseFloat(document.getElementById('f-ht').value)||0;
+  const payload = {
+    student_no: document.getElementById('f-sno').value,
+    full_name: document.getElementById('f-name').value,
+    program: document.getElementById('f-prog').value,
+    year_level: document.getElementById('f-yr').value,
+    date_of_birth: document.getElementById('f-dob').value,
+    sex: document.getElementById('f-sex').value,
+    contact: document.getElementById('f-contact').value,
+    emergency_contact: document.getElementById('f-emg').value,
+    blood_type: document.getElementById('f-bt').value,
+    weight_kg: wt, height_cm: ht,
+    bmi: ht>0 ? +(wt/((ht/100)**2)).toFixed(1) : 0,
+    allergies: document.getElementById('f-allergy').value,
+    conditions: document.getElementById('f-cond').value,
+    surgeries: document.getElementById('f-surg').value,
+    vaccinations: document.getElementById('f-vacc').value,
+  };
+  try {
+    await api(`/students/${payload.student_no}`, {method:'PUT', body:JSON.stringify(payload)});
+  } catch {
+    await api('/students', {method:'POST', body:JSON.stringify(payload)});
+  }
+  document.getElementById('add-student-form').style.display='none';
+  loadStudents();
+}
+
+// ── Appointments ───────────────────────────
+async function loadAllAppts() {
+  allStudents = await api('/students');
+  const all = await Promise.all(allStudents.map(s=>api(`/students/${s.student_no}/appointments`)));
+  allAppts = all.flat();
+  document.getElementById('appts-table').innerHTML = allAppts.map(a=>`<tr>
+    <td>${a.student_no}</td><td>${a.doctor}</td><td>${a.type}</td>
+    <td>${a.date}</td><td>${a.time}</td><td>${a.location}</td>
+    <td>${badge(a.status)}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteAppt(${a.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+async function addAppointment() {
+  const sno = document.getElementById('a-sno').value;
+  const payload = {doctor:document.getElementById('a-doc').value,type:document.getElementById('a-type').value,date:document.getElementById('a-date').value,time:document.getElementById('a-time').value,location:document.getElementById('a-loc').value,status:document.getElementById('a-stat').value};
+  await api(`/students/${sno}/appointments`, {method:'POST', body:JSON.stringify(payload)});
+  loadAllAppts();
+}
+
+async function deleteAppt(id) {
+  if(confirm('Delete this appointment?')) {
+    await api(`/appointments/${id}`, {method:'DELETE'});
+    loadAllAppts();
+  }
+}
+
+// ── Medications ────────────────────────────
+async function loadAllMeds() {
+  allStudents = await api('/students');
+  const all = await Promise.all(allStudents.map(s=>api(`/students/${s.student_no}/medications`)));
+  allMeds = all.flat();
+  document.getElementById('meds-table').innerHTML = allMeds.map(m=>`<tr>
+    <td>${m.student_no}</td><td><b>${m.name}</b></td><td>${m.dosage}</td>
+    <td>${m.frequency}</td><td>${m.route}</td><td>${m.doctor}</td>
+    <td>${m.supply_remaining}/${m.supply_total}</td>
+    <td>${badge(m.status)}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteMed(${m.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+async function addMedication() {
+  const sno = document.getElementById('m-sno').value;
+  const payload = {name:document.getElementById('m-name').value,dosage:document.getElementById('m-dose').value,frequency:document.getElementById('m-freq').value,route:document.getElementById('m-route').value,prescribed_date:document.getElementById('m-pdate').value,doctor:document.getElementById('m-doc').value,supply_total:parseInt(document.getElementById('m-total').value),supply_remaining:parseInt(document.getElementById('m-rem').value),status:'active'};
+  await api(`/students/${sno}/medications`, {method:'POST', body:JSON.stringify(payload)});
+  loadAllMeds();
+}
+
+async function deleteMed(id) {
+  if(confirm('Delete this medication?')) {
+    await api(`/medications/${id}`, {method:'DELETE'});
+    loadAllMeds();
+  }
+}
+
+// ── NFC Terminal ───────────────────────────
+function clearNfc() {
+  document.getElementById('nfc-payload-wrap').style.display='none';
+  document.getElementById('nfc-status').className='nfc-ready';
+  document.getElementById('nfc-status').textContent='📡 Ready — Enter student number to prepare NFC payload';
+  nfcPayload=null;
+}
+
+async function loadNfcPayload() {
+  const sno = document.getElementById('nfc-sno').value.trim();
+  if(!sno){alert('Enter a student number.');return;}
+  const st = document.getElementById('nfc-status');
+  st.className='nfc-loading'; st.textContent='⏳ Fetching records…';
+  try {
+    nfcPayload = await api(`/nfc-payload/${sno}`);
+    document.getElementById('nfc-payload-box').textContent = JSON.stringify(nfcPayload, null, 2);
+    document.getElementById('nfc-payload-wrap').style.display='block';
+    st.className='nfc-ready'; st.textContent=`✅ Payload ready for ${nfcPayload.student.full_name} — Terminal is broadcasting via NFC HCE`;
+  } catch(e) {
+    st.className=''; st.style.background='#FCEBEB'; st.style.color='#A32D2D';
+    st.textContent='❌ Student not found. Check the student number.';
+  }
+}
+
+function copyPayload() {
+  if(nfcPayload) navigator.clipboard.writeText(JSON.stringify(nfcPayload, null, 2));
+}
+
+function markReady() {
+  const st = document.getElementById('nfc-status');
+  st.className='nfc-ready';
+  st.textContent='📡 BROADCASTING — Student may now tap their phone to this terminal';
+}
+
+// ── Record Requests ────────────────────────
+async function loadRequests() {
+  const reqs = await api('/record-requests');
+  document.getElementById('requests-table').innerHTML = reqs.map(r=>`<tr>
+    <td>${r.id}</td><td>${r.student_no}</td><td>${r.record_type}</td>
+    <td>${r.purpose}</td><td>${r.date_needed}</td><td>${r.mode_of_release}</td>
+    <td>${badge(r.status)}</td><td style="font-size:11px;color:#888;">${r.submitted_at||'–'}</td>
+    <td><button class="btn btn-sm btn-success" onclick="approveReq(${r.id})">Approve</button></td>
+  </tr>`).join('');
+}
+
+async function approveReq(id) {
+  await api(`/record-requests/${id}/status?status=approved`, {method:'PUT'});
+  loadRequests();
+}
+
+// Auto-load dashboard
+loadDashboard();
+</script>
+</body>
+</html>
